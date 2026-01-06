@@ -1,4 +1,19 @@
-streamlit
-pandas
-pyodbc
-plotly
+# SQL Monitoring Pro - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+streamlit>=1.28.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Database Connectivity
+pyodbc>=5.0.0
+
+# Visualization
+plotly>=5.17.0
+
+# Optional: For better performance
+# openpyxl>=3.1.0  # Excel export support
+# pillow>=10.0.0   # Image processing
