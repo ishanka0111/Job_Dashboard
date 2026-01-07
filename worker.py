@@ -27,6 +27,9 @@ def run_collection():
     # Get active instances
     cursor.execute("SELECT ServerName, FriendlyName FROM ManagedInstances WHERE IsActive = 1")
     instances = cursor.fetchall()
+    cursor.execute("""
+        TRUNCATE TABLE JobLogs 
+    """)
     
     # Read enhanced query
     with open('sql/pull_jobs.sql', 'r', encoding='utf-8') as f:
@@ -76,7 +79,7 @@ def run_collection():
             
             with pyodbc.connect(remote_str, timeout=10) as remote_conn:
                 data = remote_conn.cursor().execute(job_query).fetchall()
-                
+
                 jobs_inserted = 0
                 for row in data:
                     # Parse duration from HHMMSS format
