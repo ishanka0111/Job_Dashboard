@@ -5,7 +5,6 @@ from database import get_dashboard_data, get_health_summary
 def render():
     st.title("🎯 Overview")
     
-    # Data is already cached - instant load!
     dashboard_df = get_dashboard_data()
     health_summary = get_health_summary()
     
@@ -14,7 +13,6 @@ def render():
         st.info("👉 Go to sidebar and click '🔄 Sync Now' to collect data from your SQL Servers.")
         return
 
-    # KPIs - Fast calculation
     col1, col2, col3, col4 = st.columns(4)
     total_jobs = len(dashboard_df)
     failed_jobs = len(dashboard_df[dashboard_df['Status'] == 'Failed'])
@@ -27,7 +25,6 @@ def render():
 
     st.divider()
     
-    # Two column layout
     col_left, col_right = st.columns([2, 1])
     
     with col_left:
@@ -53,7 +50,6 @@ def render():
         st.subheader("📊 Status Distribution")
         status_counts = dashboard_df['Status'].value_counts()
         
-        # Create pie chart
         fig = px.pie(
             values=status_counts.values,
             names=status_counts.index,
@@ -73,17 +69,14 @@ def render():
     
     st.divider()
     
-    # Failed Jobs Table
     st.subheader("🚨 Critical Jobs Requiring Attention")
     failed_df = dashboard_df[dashboard_df['Status'] == 'Failed'].sort_values('LastRun', ascending=False)
     
     if not failed_df.empty:
-        # Handle NULL values
         failed_df['DurationSeconds'] = failed_df['DurationSeconds'].fillna(0)
         failed_df['ErrorMessage'] = failed_df['ErrorMessage'].fillna('No error message')
         
-        # Show only recent failures (limit for performance)
-        display_df = failed_df.head(50)  # Limit to 50 most recent
+        display_df = failed_df.head(50)
         
         st.dataframe(
             display_df[[

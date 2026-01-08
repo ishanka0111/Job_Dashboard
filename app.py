@@ -1,7 +1,9 @@
+# ============================================
+# app.py - CLEAN VERSION
+# ============================================
 import streamlit as st
 from worker import run_collection, get_collection_status
 from database import get_central_conn
-# Import your new tab modules
 from tabs import overview, failures, performance, management
 
 st.set_page_config(
@@ -10,11 +12,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Initialize session state for active tab tracking
 if 'active_tab' not in st.session_state:
     st.session_state.active_tab = 0
 
-# Sidebar Logic (Global)
 st.sidebar.header("🕹️ Control Center")
 
 last_sync = get_collection_status()
@@ -38,7 +38,6 @@ if st.sidebar.button("🔄 Sync Now", use_container_width=True):
 
 st.sidebar.divider()
 
-# Add new instance form
 with st.sidebar.expander("➕ Add New Instance", expanded=False):
     with st.form("add_form", clear_on_submit=True):
         new_label = st.text_input("Name", placeholder="Production")
@@ -65,7 +64,6 @@ with st.sidebar.expander("➕ Add New Instance", expanded=False):
 
 st.title("SQL Server Agent Jobs Monitoring Dashboard")
 
-# Custom Tab Navigation with Session State
 tab_titles = [
     "📊 Overview Dashboard",
     "⚠️ 24-Hour Failures",
@@ -73,7 +71,6 @@ tab_titles = [
     "⚙️ Instance Management"
 ]
 
-# Create clickable navigation using columns
 cols = st.columns(len(tab_titles))
 for idx, (col, title) in enumerate(zip(cols, tab_titles)):
     with col:
@@ -88,7 +85,6 @@ for idx, (col, title) in enumerate(zip(cols, tab_titles)):
 
 st.divider()
 
-# Render only the active tab
 if st.session_state.active_tab == 0:
     overview.render()
 elif st.session_state.active_tab == 1:

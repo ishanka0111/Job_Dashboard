@@ -10,7 +10,6 @@ def render():
         st.success("🎉 No failures in the last 24 hours!")
         return
     
-    # Simple metrics
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Failures", len(failures_24h))
     col2.metric("Instances Affected", failures_24h['FriendlyName'].nunique())
@@ -18,7 +17,6 @@ def render():
     
     st.divider()
     
-    # Simple table - no filters, no charts
     st.dataframe(
         failures_24h[[
             'FriendlyName', 'JobName', 'LastRun', 'ErrorMessage'

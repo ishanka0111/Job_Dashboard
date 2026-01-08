@@ -3,16 +3,8 @@ import pandas as pd
 import pyodbc
 import warnings
 from config import DB_CONFIG
-from datetime import datetime, timedelta
-import threading
-import time
 
-# Suppress pandas pyodbc warning
 warnings.filterwarnings('ignore', message='pandas only supports SQLAlchemy')
-
-# Global cache dictionary for instant access
-_data_cache = {}
-_cache_lock = threading.Lock()
 
 @st.cache_resource
 def get_central_conn():
@@ -35,37 +27,13 @@ def _fetch_from_db(query, params=None):
 
 @st.cache_data(ttl=60)
 def fetch_data(query, params=None):
-    """
-    Fetch data with 60-second cache
-    Automatically preloads common queries
-    """
+    """Fetch data with 60-second cache"""
     return _fetch_from_db(query, params)
 
 @st.cache_data(ttl=300)
 def fetch_static_data(query, params=None):
-    """
-    For rarely changing data (5-minute cache)
-    """
+    """For rarely changing data (5-minute cache)"""
     return _fetch_from_db(query, params)
-
-def preload_dashboard_data():
-    """
-    Preload all dashboard data in background
-    This runs once when app starts
-    """
-    queries_to_preload = [
-        ("dashboard", "SELECT * FROM v_EnhancedDashboard WHERE IsActive = 1"),
-        ("health", "SELECT * FROM v_InstanceHealthSummary WHERE IsActive = 1"),
-        ("failures", "SELECT * FROM v_Last24HourFailures"),
-        ("instances", "SELECT ServerName, FriendlyName, IsActive FROM ManagedInstances WHERE IsActive = 1"),
-    ]
-    
-    for key, query in queries_to_preload:
-        try:
-            # Trigger the cache by calling fetch_data
-            fetch_data(query)
-        except:
-            pass  # Silent fail for preload
 
 def get_dashboard_data():
     """Fast access to dashboard data"""
@@ -95,13 +63,3 @@ def clear_all_caches():
     """Clear all caches when data is updated"""
     st.cache_data.clear()
     st.cache_resource.clear()
-    with _cache_lock:
-        _data_cache.clear()
-
-# Initialize preload on module import
-if 'preload_done' not in st.session_state:
-    st.session_state.preload_done = False
-    
-if not st.session_state.preload_done:
-    preload_dashboard_data()
-    st.session_state.preload_done = True

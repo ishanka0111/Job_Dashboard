@@ -11,7 +11,6 @@ def render():
         st.warning("⚠️ No performance data available.")
         return
 
-    # Simple instance selector - just one at a time
     all_instances = perf_trends['FriendlyName'].unique().tolist()
     
     selected_instance = st.selectbox(
@@ -26,15 +25,10 @@ def render():
     filtered = perf_trends[perf_trends['FriendlyName'] == selected_instance]
     st.divider()
 
-
-    # filtered = perf_trends[perf_trends['FriendlyName'].isin(selected_instances)]
-    
-    # Duration Trends
     st.subheader("📊 Average Duration Trends (30 Days)")
     
-    # Limit jobs shown if too many
     unique_jobs = filtered['JobName'].nunique()
-    if unique_jobs > 15:  # Reduced from 20 for faster rendering
+    if unique_jobs > 15:
         st.info(f"ℹ️ {unique_jobs} jobs found. Showing top 15 by max duration for better performance.")
         top_jobs = (filtered.groupby('JobName')['MaxDuration']
                    .max()
@@ -45,7 +39,6 @@ def render():
     else:
         filtered_chart = filtered
     
-    # Only show chart if reasonable amount of data
     if len(filtered_chart) < 1000:
         fig_duration = px.line(
             filtered_chart,
@@ -62,19 +55,9 @@ def render():
         st.plotly_chart(fig_duration, use_container_width=True, key="duration_chart")
     else:
         st.warning("Too much data to display chart. Please select fewer instances or jobs.")
-    
-
-
-
-
-
-
-
-
 
     st.divider()
     
-    # Simple table - Top 10 slowest jobs
     st.subheader("🐌 Top 10 Slowest Jobs")
     
     top_slow = (filtered.groupby('JobName')['MaxDuration']
@@ -93,7 +76,6 @@ def render():
     
     st.divider()
     
-    # Simple table - Jobs with failures
     st.subheader("❌ Jobs with Failures")
     
     summary = filtered.groupby('JobName').agg({
@@ -113,6 +95,5 @@ def render():
             use_container_width=True,
             hide_index=True
         )
-
     else:
         st.success("✅ All jobs successful!")
