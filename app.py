@@ -1,5 +1,4 @@
 import streamlit as st
-
 from worker import run_collection, get_collection_status
 from database import get_central_conn
 # Import your new tab modules
@@ -11,24 +10,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Initialize session state for active tab tracking
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = 0
+
 # Sidebar Logic (Global)
 st.sidebar.header("🕹️ Control Center")
-
 
 last_sync = get_collection_status()
 if last_sync:
     st.sidebar.info(f"📅 Last Sync: {last_sync.strftime('%Y-%m-%d %H:%M:%S')}")
 
-
-
-
-
 if st.sidebar.button("🔄 Sync Now", use_container_width=True):
     with st.spinner("Collecting data..."):
-        run_collection()
-        st.cache_resource.clear()
-        st.rerun()
-
+        try:
+            results = run_collection()
+            if results['failed']:
+                st.sidebar.warning(f"⚠️ {len(results['failed'])} instance(s) failed")
+                with st.sidebar.expander("View Errors"):
+                    for err in results['failed']:
+                        st.write(f"❌ {err}")
+            st.sidebar.success(f"✅ Collected {results['total_jobs_collected']} job records")
+            st.cache_resource.clear()
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"❌ Collection failed: {str(e)}")
 
 st.sidebar.divider()
 
@@ -57,31 +63,39 @@ with st.sidebar.expander("➕ Add New Instance", expanded=False):
             else:
                 st.warning("Please fill all fields")
 
-st.title(" SQL Server Agent Jobs Monitoring Dashboard ")
-# Main Tabs Setup
+st.title("SQL Server Agent Jobs Monitoring Dashboard")
+
+# Custom Tab Navigation with Session State
 tab_titles = [
     "📊 Overview Dashboard",
     "⚠️ 24-Hour Failures",
-    # "📈 Job Execution History",
     "⚡ Performance Analytics",
     "⚙️ Instance Management"
 ]
-t1, t2, t4, t5 = st.tabs(tab_titles)
 
-# Lazy Loading: Logic only runs when the tab is active
-with t1:
+# Create clickable navigation using columns
+cols = st.columns(len(tab_titles))
+for idx, (col, title) in enumerate(zip(cols, tab_titles)):
+    with col:
+        if st.button(
+            title,
+            key=f"tab_{idx}",
+            use_container_width=True,
+            type="primary" if st.session_state.active_tab == idx else "secondary"
+        ):
+            st.session_state.active_tab = idx
+            st.rerun()
+
+st.divider()
+
+# Render only the active tab
+if st.session_state.active_tab == 0:
     overview.render()
-
-with t2:
+elif st.session_state.active_tab == 1:
     failures.render()
-
-# with t3:
-#     history.render()
-
-with t4:
+elif st.session_state.active_tab == 2:
     performance.render()
-
-with t5:
+elif st.session_state.active_tab == 3:
     management.render()
 
 st.divider()
